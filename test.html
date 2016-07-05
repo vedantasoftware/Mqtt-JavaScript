@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<head>
+
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">  
+  <script type="text/JavaScript" src="D:\Work\mqtt-client\paho.javascript-1.0.1\paho.javascript-1.0.1\mqttws31.js"></script>
+  <script type="text/JavaScript">
+
+// Create a client instance
+client = new Paho.MQTT.Client("192.168.1.134", Number(15675), "/ws", "clientId");
+
+// set callback handlers
+client.onConnectionLost = onConnectionLost;
+client.onMessageArrived = onMessageArrived;
+
+// Connect the client, with a Last-Will-and-Testament
+var lwt = new Paho.MQTT.Message("Disconnected client");
+lwt.destinationName = "/World";
+lwt.qos = 1;
+lwt.retained = true;
+// connect the client
+//client.connect({onSuccess:onConnect,useSSL:true});
+client.connect({onSuccess:onConnect,willMessage:lwt});
+//client.connect({onSuccess:onConnect});
+
+
+// called when the client connects
+function onConnect() {
+  // Once a connection has been made, make a subscription and send a message.
+  console.log("onConnect");
+  //client.subscribe("/World");
+  var subscribeOptions = {
+    qos: 1,  // QoS
+    invocationContext: {foo: true},  // Passed to success / failure callback
+    onSuccess: onSuccessCallback,
+    onFailure: onFailureCallback,
+    timeout: 10
+  };
+  client.subscribe("/World",subscribeOptions);
+  
+  message = new Paho.MQTT.Message("Hello");
+  message.destinationName = "/World";
+  message.qos = 1;
+  message.retained = true;
+  client.send(message);
+}
+
+// called when the client loses its connection
+function onConnectionLost(responseObject) {
+  if (responseObject.errorCode !== 0) {
+    console.log("onConnectionLost:"+responseObject.errorMessage);
+  }
+}
+
+// called when a message arrives
+function onMessageArrived(message) {
+  console.log("Message Arrived: " + message.payloadString);
+  console.log("Topic:     " + message.destinationName);
+  console.log("QoS:       " + message.qos);
+  console.log("Retained:  " + message.retained);
+  // Read Only, set if message might be a duplicate sent from broker
+  console.log("Duplicate: " + message.duplicate);
+
+}
+
+function onSuccessCallback(invocationContext, grantedQos) {
+console.log("InvocationContext: " + invocationContext);
+}
+
+function onFailureCallback(invocationContext, errorCode) {
+console.log("Failed in Subscribe: errorCode: " + errorCode);
+}
+
+
+
+</script>
+</head> 
+.
+.
+.
+
+</body>
+</html>
